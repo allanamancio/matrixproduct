@@ -13,7 +13,7 @@ void *emalloc(size_t size) {
 	return memory;
 }
 
-char input_validation(int argc, char **argv, FILE *path_matr_A, FILE *path_matr_B, FILE *path_matr_C) {
+char input_validation(int argc, char **argv, FILE **path_matr_A, FILE **path_matr_B, FILE **path_matr_C) {
 	char implementation;
 
 	// Checking quantity of arguments
@@ -32,22 +32,22 @@ char input_validation(int argc, char **argv, FILE *path_matr_A, FILE *path_matr_
 	}
 
 	// Second one
-	path_matr_A = fopen(argv[2], "r");
-	if (path_matr_A == NULL) {
+	*path_matr_A = fopen(argv[2], "r");
+	if ((*path_matr_A) == NULL) {
 		fprintf(stderr, "ERROR: Invalid file to matrix A.\n");
 		exit(1);
 	}
 
 	// Thrid one
-	path_matr_B = fopen(argv[3], "r");
-	if (path_matr_B == NULL) {
+	*path_matr_B = fopen(argv[3], "r");
+	if ((*path_matr_B) == NULL) {
 		fprintf(stderr, "ERROR: Invalid file to matrix B.\n");
 		exit(1);
 	}
 
 	// Fourth one
-	path_matr_C = fopen(argv[4], "w");
-	if (path_matr_C == NULL) {
+	*path_matr_C = fopen(argv[4], "w");
+	if ((*path_matr_C) == NULL) {
 		fprintf(stderr, "ERROR: Invalid file to matrix C.\n");
 		exit(1);
 	}
@@ -71,7 +71,7 @@ void file_to_matrix(FILE *path_matr, double **matr) {
 
 	token = strtok(buffer, space);
 	rows = atoi(token);
-	token = strtok(buffer, space);
+	token = strtok(NULL, space);
 	columns = atoi(token);
 	
 	// Creating matrix
@@ -79,18 +79,17 @@ void file_to_matrix(FILE *path_matr, double **matr) {
 	for (int i = 0; i < rows; i++) matr[i] = (double*)emalloc(columns*sizeof(double));
 
 	// Filling matrix
-	int i_aux, j_aux, value;
-	i_aux = 0;
-	j_aux = 0;
+	int i_aux = 0, j_aux = 0;
+	double value;
 
 	// First position non-zero
 	if (fgets(buffer, 128, path_matr) != NULL) {
 		token = strtok(buffer, space);
-		i_aux = atoi(token);
-		token = strtok(buffer, space);
-		j_aux = atoi(token);
-		token = strtok(buffer, space);
-		value = atoi(token);
+		i_aux = atoi(token) - 1;
+		token = strtok(NULL, space);
+		j_aux = atoi(token) - 1;
+		token = strtok(NULL, space);
+		value = atof(token);
 	}
 
 	for (int i = 0; i < rows; i++) {
@@ -102,11 +101,11 @@ void file_to_matrix(FILE *path_matr, double **matr) {
 				// Next position non-zero
 				if (fgets(buffer, 128, path_matr) != NULL) {
 					token = strtok(buffer, space);
-					i_aux = atoi(token);
-					token = strtok(buffer, space);
-					j_aux = atoi(token);
-					token = strtok(buffer, space);
-					value = atoi(token);
+					i_aux = atoi(token) - 1;
+					token = strtok(NULL, space);
+					j_aux = atoi(token) - 1;
+					token = strtok(NULL, space);
+					value = atof(token);
 				}
 			}
 		}
@@ -119,7 +118,7 @@ int main(int argc, char **argv) {
 	char implementation;
 
 	/*Setup*/
-	implementation = input_validation(argc, argv, path_matr_A, path_matr_B, path_matr_C);
+	implementation = input_validation(argc, argv, &path_matr_A, &path_matr_B, &path_matr_C);
 	file_to_matrix(path_matr_A, matr_A);
 	// file_to_matrix(path_matr_B, matr_B);
 
