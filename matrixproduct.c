@@ -13,7 +13,19 @@ void *emalloc(size_t size) {
 	return memory;
 }
 
+/// --- >>>>> TEMPORARY FUNCTION FOR DEBUGS!!! <<<<< --- (begin)
+void print_matrix(double **matr, int rows, int columns) {
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < columns; j++) {
+			printf("matr[%d][%d] = %lf\n", i, j, matr[i][j]);
+		}
+	}
+}
+/// --- >>>>> TEMPORARY FUNCTION FOR DEBUGS!!! <<<<< --- (end)
+
 char input_validation(int argc, char **argv, FILE **path_matr_A, FILE **path_matr_B, FILE **path_matr_C) {
+	/*Valids the input data and return the implementation chosen*/
+
 	char implementation;
 
 	// Checking quantity of arguments
@@ -51,10 +63,12 @@ char input_validation(int argc, char **argv, FILE **path_matr_A, FILE **path_mat
 		fprintf(stderr, "ERROR: Invalid file to matrix C.\n");
 		exit(1);
 	}
+
+	return implementation;
 }
 
-void file_to_matrix(FILE *path_matr, double **matr) {
-	/*Reads a file and get the matrix from it*/
+int file_to_matrix(FILE *path_matr, double **matr, char id) {
+	/*Reads a file and get the matrix from it and return the number of rows or colmuns of it*/
 
 	// Variables
 	int rows;
@@ -73,13 +87,13 @@ void file_to_matrix(FILE *path_matr, double **matr) {
 	rows = atoi(token);
 	token = strtok(NULL, space);
 	columns = atoi(token);
-	
+
 	// Creating matrix
 	matr = (double**)emalloc(rows*sizeof(double*));
 	for (int i = 0; i < rows; i++) matr[i] = (double*)emalloc(columns*sizeof(double));
 
 	// Filling matrix
-	int i_aux = 0, j_aux = 0;
+	int i_aux = rows + 1, j_aux = columns + 1; // In case, there is not position non-zero in matrix
 	double value;
 
 	// First position non-zero
@@ -94,7 +108,7 @@ void file_to_matrix(FILE *path_matr, double **matr) {
 
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
-			if (i_aux != i || j_aux != j) matr[i][j] = 0;
+			if (i != i_aux || j != j_aux) matr[i][j] = 0; // Not matrix position
 			else {
 				matr[i][j] = value;
 
@@ -110,23 +124,67 @@ void file_to_matrix(FILE *path_matr, double **matr) {
 			}
 		}
 	}
+
+	// DEBUG (begin)
+	printf("Matrix %c\n", id);
+	print_matrix(matr, rows, columns);
+	// DEBUG (end)
+
+	if (id == 'A') return rows;
+	else return columns; // id == 'B'
+}
+
+void matrix_to_file(double **matr, int rows, int columns, FILE **path_matr) {
+	/*Reads a matrix and print it in a specif format in a file*/
+	fprintf(*path_matr, "%d %d\n", rows, columns); // First line
+
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < columns; j++) {
+			if (matr[i][j] != 0) {
+				fprintf(*path_matr, "%i %i %lf\n", i, j, matr[i][j]);
+			}
+		}
+	}
 }
 
 int main(int argc, char **argv) {
 	FILE *path_matr_A, *path_matr_B, *path_matr_C;
 	double **matr_A, **matr_B, **matr_C;
+	int rowsC, columnsC;
 	char implementation;
 
-	/*Setup*/
+	// Setup
 	implementation = input_validation(argc, argv, &path_matr_A, &path_matr_B, &path_matr_C);
-	file_to_matrix(path_matr_A, matr_A);
-	// file_to_matrix(path_matr_B, matr_B);
+	rowsC = file_to_matrix(path_matr_A, matr_A, 'A');
+	columnsC = file_to_matrix(path_matr_B, matr_B, 'B');
+
+	// Matrix product
+	if (implementation == 'p') {
+
+	}
+	else { // implementation == 'o'
+
+	}
+
+	// DEBUG (begin)
+	matr_C = (double**)emalloc(rowsC*sizeof(double*));
+	for (int i = 0; i < rowsC; i++) matr_C[i] = (double*)emalloc(columnsC*sizeof(double));
+	for (int i = 0; i < rowsC; i++) {
+		for (int j = 0; j < columnsC; j++) {
+			if ((i + j)%3 == 2) matr_C[i][j] = ((i+j)*3)/2;
+		}
+	}
+	printf("Matrix C\n");
+	print_matrix(matr_C, rowsC, columnsC);
+	// DEBUG (end)
+
+	// Result
+	matrix_to_file(matr_C, rowsC, columnsC, &path_matr_C);
 
 	/*Closing*/
-
-	// fclose(path_matr_A);
-	// fclose(path_matr_B);
-	// fclose(path_matr_C);
+	fclose(path_matr_A);
+	fclose(path_matr_B);
+	fclose(path_matr_C);
 
 	return 1;
 }
