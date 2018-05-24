@@ -69,6 +69,7 @@ char input_validation(int argc, char **argv, FILE **path_matr_A, FILE **path_mat
 
 int file_to_matrix(FILE *path_matr, double **matr, char id) {
 	/*Reads a file and get the matrix from it and return the number of rows or colmuns of it*/
+	/*In case if it is matrix B, the function will build its transpose matrix*/
 
 	// Variables
 	int rows;
@@ -84,9 +85,11 @@ int file_to_matrix(FILE *path_matr, double **matr, char id) {
 	}
 
 	token = strtok(buffer, space);
-	rows = atoi(token);
+	if (id == 'B') columns = atoi(token); // Transpose
+	else rows = atoi(token);
 	token = strtok(NULL, space);
-	columns = atoi(token);
+	if (id == 'B') rows = atoi(token); // Transpose
+	else columns = atoi(token);
 
 	// Creating matrix
 	matr = (double**)emalloc(rows*sizeof(double*));
@@ -99,9 +102,11 @@ int file_to_matrix(FILE *path_matr, double **matr, char id) {
 	// First position non-zero
 	if (fgets(buffer, 128, path_matr) != NULL) {
 		token = strtok(buffer, space);
-		i_aux = atoi(token) - 1;
+		if (id == 'B') j_aux = atoi(token) - 1; // Transpose
+		else i_aux = atoi(token) - 1;
 		token = strtok(NULL, space);
-		j_aux = atoi(token) - 1;
+		if (id == 'B') i_aux = atoi(token) - 1; // Transpose
+		else j_aux = atoi(token) - 1;
 		token = strtok(NULL, space);
 		value = atof(token);
 	}
@@ -115,9 +120,11 @@ int file_to_matrix(FILE *path_matr, double **matr, char id) {
 				// Next position non-zero
 				if (fgets(buffer, 128, path_matr) != NULL) {
 					token = strtok(buffer, space);
-					i_aux = atoi(token) - 1;
+					if (id == 'B') j_aux = atoi(token) - 1; // Transpose
+					else i_aux = atoi(token) - 1;
 					token = strtok(NULL, space);
-					j_aux = atoi(token) - 1;
+					if (id == 'B') i_aux = atoi(token) - 1; // Transpose
+					else j_aux = atoi(token) - 1;
 					token = strtok(NULL, space);
 					value = atof(token);
 				}
@@ -128,10 +135,10 @@ int file_to_matrix(FILE *path_matr, double **matr, char id) {
 	// DEBUG (begin)
 	printf("Matrix %c\n", id);
 	print_matrix(matr, rows, columns);
+	printf("\n");
 	// DEBUG (end)
 
-	if (id == 'A') return rows;
-	else return columns; // id == 'B'
+	return rows; // if (id == 'B') {rows = columns}
 }
 
 void matrix_to_file(double **matr, int rows, int columns, FILE **path_matr) {
@@ -149,14 +156,14 @@ void matrix_to_file(double **matr, int rows, int columns, FILE **path_matr) {
 
 int main(int argc, char **argv) {
 	FILE *path_matr_A, *path_matr_B, *path_matr_C;
-	double **matr_A, **matr_B, **matr_C;
+	double **matr_A, **matr_Bt, **matr_C;
 	int rowsC, columnsC;
 	char implementation;
 
 	// Setup
 	implementation = input_validation(argc, argv, &path_matr_A, &path_matr_B, &path_matr_C);
 	rowsC = file_to_matrix(path_matr_A, matr_A, 'A');
-	columnsC = file_to_matrix(path_matr_B, matr_B, 'B');
+	columnsC = file_to_matrix(path_matr_B, matr_Bt, 'B');
 
 	// Matrix product
 	if (implementation == 'p') {
