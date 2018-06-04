@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
+// Struct to matrix
 typedef struct { 
 	int row;
 	int col;
@@ -85,8 +86,8 @@ void file_to_matrix(FILE *path_matr, matr *m, char id) {
 	double **matrix;
 
 	const char space[2] = " ";
-	char *token = emalloc(64*sizeof(char));
-	char *buffer = emalloc(128*sizeof(char));
+	char *token = emalloc(64 * sizeof(char));
+	char *buffer = emalloc(128 * sizeof(char));
 
 	// Number of rows and columns
 	if (fgets(buffer, 128, path_matr) == NULL) {
@@ -102,8 +103,8 @@ void file_to_matrix(FILE *path_matr, matr *m, char id) {
 	else col = atoi(token);
 
 	// Creating matrix
-	matrix = (double**)emalloc(row*sizeof(double*));
-	for (int i = 0; i < row; i++) matrix[i] = (double*)emalloc(col*sizeof(double));
+	matrix = (double**)emalloc(row * sizeof(double*));
+	for (int i = 0; i < row; i++) matrix[i] = (double*)emalloc(col * sizeof(double));
 
 	// Filling matrix
 	int i_aux = row + 1, j_aux = col + 1; // In case, there is not position non-zero in matrix
@@ -167,14 +168,13 @@ void matrix_to_file(matr *m, FILE **path_matr) {
 	}
 }
 
-void parallel_product(matr *mA, matr *mBt, matr *mC) {
-
+void *parallel_product(void *arg) {
+	printf("EXECUTEI QUALQUER PORRA\n"); // DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
 }
 
 int main(int argc, char **argv) {
 	FILE *path_matr_A, *path_matr_B, *path_matr_C;
 	matr matr_A, matr_Bt, matr_C;
-
 	char implementation;
 
 	// Setup
@@ -184,6 +184,24 @@ int main(int argc, char **argv) {
 
 	// Matrix product
 	if (implementation == 'p') {
+		int number_threads = sysconf(_SC_NPROCESSORS_ONLN);
+		pthread_t *id = emalloc(number_threads * sizeof(pthread_t));
+
+		for (int i = 0; i < number_threads; i++) {
+			if (pthread_create(&id[i], NULL, parallel_product, NULL)) {
+				fprintf(stderr, "ERROR: Thread not created.\n");
+				exit(1);
+			}
+			else printf("CREATED, YEAH %d\n", id[i]); // DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
+		}
+
+		for (int i = 0; i < number_threads; i++) {
+			if (pthread_join(id[i], NULL)) {
+				fprintf(stderr, "ERROR: Thread not joined.\n");
+				exit(1);
+			}
+			else printf("JOINED, YEAH %d\n", id[i]); // DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
+		}
 
 	}
 	else { // implementation == 'o'
